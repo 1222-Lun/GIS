@@ -1,27 +1,34 @@
+#load the R packages
 library(tidyverse)
 library(sf)
 library(tmap)
-library(spData)
 library(viridis)
 library(lubridate)
 
+# Read the CSV file of the confirmed cases
 Confirmed<- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"))
+# Select the newest data when I write the essay
 Confirmed_Newest<- dplyr::select(Confirmed, `Province/State`, `Country/Region`, Lat, Long,`1/7/21`)
 
 Australia <- Confirmed_Newest %>% 
   filter(`Country/Region`=="Australia")
 
+#Select the updated data of Australia
 Australia_Newest <- Confirmed_Newest %>% 
   filter(`Country/Region`=="Australia") %>% 
   select(-`Country/Region`) %>% 
   rename(State=`Province/State`, Confirmed=`1/7/21`)
 
+# Load the states data in the package ozmaps, it contains the various geographic information of Australia
 data("ozmap_states")
 sf_oz <- ozmap_data("states")
 cov_AUS <- left_join(sf_oz, Australia_Newest, by = c("NAME" = "State"))
 nrow(cov_AUS)
 
+#Set the breaks
 breaks <- c(10, 1000, 30000)
+
+#use tmap functions to plot the map
 tm_shape(cov_AUS) +
   tm_polygons(border.col="white", 
               lwd=2, 
@@ -37,19 +44,5 @@ tm_shape(cov_AUS) +
 
 
 
-# Date <- colnames(AUS_2)[2:15]
-# AUS_ByDate <- AUS_2 %>% 
-#   pivot_longer(Date, names_to = "Date", values_to = "Cases")
-# 
-# AUS_ByDate <- mutate(AUS_ByDate, Date_N=mdy(Date))
-# cov_AUS <- full_join(sf_oz, AUS_ByDate,by = c("NAME" = "State"))
-# 
-# breaks <- c(0, 1, 10, 100, 1000, 10000, 100000)
-# tm_shape(cov_AUS) +
-#   tm_polygons(col="Cases",
-#               breaks=breaks, 
-#               title="Confirmed cases",
-#               palette=viridis(n=5, direction=-1, option="A")) +
-#   tm_facets(by = "Date_N", nrow = 5, free.coords = FALSE) +
-#   tm_layout(legend.position=c(-0.6, -0.01))
+
 
